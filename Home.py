@@ -10,9 +10,7 @@ st.set_page_config(layout="centered",
                    page_icon="🧠",
                    initial_sidebar_state="expanded")
 
-
-# Tạo đồ thị
-
+# TẠO ĐỒ THỊ 
 # Vô hướng
 def createGraph(edges):
     G = nx.Graph()
@@ -20,18 +18,16 @@ def createGraph(edges):
         if len(edge) == 1:
             G.add_node(edge[0])
         elif len(edge) == 2:
-            G.add_edge(edge[0], edge[1], weight=1)
+            G.add_edge(edge[0], edge[1])
         elif len(edge) == 3:
-            # weight = int(edge[2])
-            G.edges(data=True)
+            # lưu trữ trọng số cung bằng label
+            # G.edges(data=True)
             G.add_edge(edge[0], edge[1], title=edge[2], label=edge[2])
         else:
             st.toast("Cung có nhiều hơn 4 tham số sẽ không hiển thị!", icon='⚠️')
     return G
 
 # Có hướng
-
-
 def createDiGraph(edges):
     G = nx.DiGraph()
     for edge in edges:
@@ -40,19 +36,17 @@ def createDiGraph(edges):
         elif len(edge) == 2:
             G.add_edge(edge[0], edge[1])
         elif len(edge) == 3:
-            # weight = int(edge[2])
             G.add_edge(edge[0], edge[1], title=edge[2], label=edge[2])
+        else:
+            st.toast("Cung có nhiều hơn 4 tham số sẽ không hiển thị!", icon='⚠️')
     return G
 
-
+#DUYỆT ĐỒ THỊ
 # Duyệt đồ thị theo chiều rộng
-
-
 def bfs(graph, start_node):
     visited = set()
     queue = [start_node]
     list = []
-
     st.markdown("<p>Thứ tự duyệt theo chiều rộng: </p>",
                 unsafe_allow_html=True)
     while queue:
@@ -69,13 +63,11 @@ def bfs(graph, start_node):
     return visited
     # drawGraph(graph)
 
-
 # Duyệt đồ thị theo chiều sâu
 def dfs(graph, start_node):
     visited = set()
     stack = [start_node]
     list = []
-
     st.markdown("<p>Thứ tự duyệt theo chiều sâu: </p>",
                 unsafe_allow_html=True)
     while stack:
@@ -92,51 +84,53 @@ def dfs(graph, start_node):
     return visited
     # drawGraph(graph)
 
+#KIỂM TRA BỘ PHẬN LIÊN THÔNG
+def Tarjan(graph):
+    k=1
+    min_num = {}
+    num = {}
+    stack = []
+    strong_components=[]
+    def SCC(graph, start_node, k):
+        num.update({start_node:k})
+        min_num.update({start_node:k})
+        k=k+1
+        stack.append(start_node)
 
-def tarjan(graph):
-    index = {}  # Chứa chỉ số đánh số của các đỉnh
-    lowlink = {}  # Chứa giá trị lowlink của các đỉnh
-    stack = []  # Stack để lưu trữ các đỉnh đã duyệt
-    result = []  # Danh sách các thành phần liên thông mạnh
+        for v in graph.neighbors(start_node):
+            if v not in num:
+                SCC(graph, v, k)
+                min_num.update({start_node : min(min_num.get(start_node), min_num.get(v))})
+            elif v in stack:
+                min_num.update({start_node : min(min_num.get(start_node), num.get(v))})
 
-    def dfs(v):
-        index[v] = len(index)
-        lowlink[v] = len(lowlink)
-        stack.append(v)
-
-        for w in graph.neighbors(v):
-            if w not in index:
-                dfs(w)
-                lowlink[v] = min(lowlink[v], lowlink[w])
-            elif w in stack:
-                lowlink[v] = min(lowlink[v], index[w])
-
-        if lowlink[v] == index[v]:
+        if num.get(start_node) == min_num.get(start_node):
             component = []
             while True:
                 w = stack.pop()
                 component.append(w)
-                if w == v:
+                if w == start_node:
                     break
-            result.append(component)
+            if len(component) != 0:
+                strong_components.append(component)
 
-    for v in graph.nodes:
-        if v not in index:
-            dfs(v)
-        return result
+    for node in list(graph.nodes):
+        if node not in num:
+            SCC(graph,node,k)
+    return strong_components
 
 def get_component_edges(edges, component):
     component_edges = []
-    for edge in edges:
-        if len(component) == 1:
-            component_edges.append((component.pop()))
-        elif (all(node in component for node in edge)):
-            component_edges.append(edge)
+    if len(component) == 1:
+            component_edges.append(component[0])
+    else :
+        for edge in edges:
+            if edge[0] in component and edge[1] in component:
+                component_edges.append(edge)
     return component_edges
 
 
 # Vẽ đồ thị
-
 
 def drawGraph(graph, directed):
     vis = Network(height="350px", width="100%", directed=directed)
@@ -145,16 +139,6 @@ def drawGraph(graph, directed):
     HtmlFile = open("graph.html", 'r', encoding='utf-8')
     source_code = HtmlFile.read()
     components.html(source_code, height=360)
-
-
-def draw_component(component):
-    vis = Network(height="350px", width="100%", directed=False)
-    vis.from_nx(component)
-    vis.write_html("component.html")
-    HtmlFile = open("component.html", 'r', encoding='utf-8')
-    source_code = HtmlFile.read()
-    components.html(source_code, height=425)
-
 
 def main():
     # Giao diện người dùng
@@ -166,7 +150,7 @@ def main():
     st.sidebar.subheader("📝Nhập đồ thị:")
     directed = st.sidebar.toggle("Có hướng")
     edges = st.sidebar.text_area(
-        "Danh sách cung (cạnh):", value="1 2 4\n2 3 5\n3 1 10")
+        "Danh sách cung (cạnh):", value="1 2 4\n2 3 5\n3 1 10\n5 6 2\n6 5 3\n7")
     has_weights = False
     edges = [tuple(edge.split()) for edge in edges.splitlines()]
     # for _ in edges:
@@ -181,7 +165,7 @@ def main():
     else:
         graph = createGraph(edges)
         drawGraph(graph, directed)
-
+    
     st.sidebar.button("Nhập")
 
     st.sidebar.divider()
@@ -194,9 +178,16 @@ def main():
 
     if st.sidebar.button("Duyệt"):
         if traversalMethod == "Duyệt theo chiều rộng (BFS)":
-            bfs(graph, startNode)
+            mark=[]
+            for node in graph.nodes:
+                if node not in mark:
+                    bfs(graph, startNode)
         elif traversalMethod == "Duyệt theo chiều sâu (DFS)":
-            dfs(graph, startNode)
+            mark=[]
+            for node in graph.nodes:
+                if node not in mark:
+                    dfs(graph, startNode)
+            
 
     st.sidebar.divider()
 
@@ -204,11 +195,15 @@ def main():
     st.sidebar.caption(
         "Sử dụng thuật toán :violet[Tarjan] - đếm số lượng bộ phận :red[Liên thông]/ :blue[Liên thông mạnh] của đồ thị :red[Vô hướng]/ :blue[Có hướng]")
     if st.sidebar.button("Kiểm tra"):
-        strong_components = tarjan(graph)
+        strong_components = Tarjan(graph)
         component_edges_list = []
         for component in strong_components:
-            component_edges = get_component_edges(edges, component)
+            component_edges = get_component_edges(list(edges), component)
             component_edges_list.append(component_edges)
+        
+        print(strong_components)
+        print(component_edges_list)
+        
         if directed:
             st.subheader(
                 f"Đồ thị có :blue[{len(component_edges_list)} bộ phận liên thông mạnh]")
