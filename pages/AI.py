@@ -8,7 +8,7 @@ st.set_page_config(layout="centered",
                    page_icon="🤖",
                    initial_sidebar_state="expanded")
 
-st.title("Hỏi :violet[AI] 🤖")
+st.title("Graph:violet[Coach] 🤖")
 st.caption("Được hỗ trợ bởi :violet[Gemini]")
 
 if "history" not in st.session_state:
@@ -38,6 +38,7 @@ if prompt := st.chat_input(""):
         message_placeholder.markdown("Suy nghĩ...")
         try:
             full_response = ""
+            prompt = f"Hãy trong vai một giảng viên dạy về Lý thuyết đồ thị và trả lời câu hỏi sau đây thật rõ ràng và dễ hiểu: {prompt}"
             for chunk in chat.send_message(prompt, stream=True):
                 word_count = 0
                 random_int = random.randint(5, 10)
