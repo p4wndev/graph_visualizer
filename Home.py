@@ -46,7 +46,7 @@ def createDiGraph(edges):
 def bfs(graph, start_node):
     visited = set()
     queue = [start_node]
-    list = []
+    list_nodes = []
     st.markdown("<p>Thứ tự duyệt theo chiều rộng: </p>",
                 unsafe_allow_html=True)
     while queue:
@@ -54,11 +54,13 @@ def bfs(graph, start_node):
         if node in visited:
             continue
         visited.add(node)
-        list.append(node)
-        for neighbor in graph.neighbors(node):
+        list_nodes.append(node)
+        neighbors=list(graph.neighbors(node))
+        neighbors.sort()
+        for neighbor in neighbors:
             if neighbor not in visited:
                 queue.append(neighbor)
-    st.subheader(' → '.join(list))
+    st.subheader(' → '.join(list_nodes))
     st.divider()
     return visited
     # drawGraph(graph)
@@ -67,7 +69,7 @@ def bfs(graph, start_node):
 def dfs(graph, start_node):
     visited = set()
     stack = [start_node]
-    list = []
+    list_nodes = []
     st.markdown("<p>Thứ tự duyệt theo chiều sâu: </p>",
                 unsafe_allow_html=True)
     while stack:
@@ -75,11 +77,13 @@ def dfs(graph, start_node):
         if node in visited:
             continue
         visited.add(node)
-        list.append(node)
-        for neighbor in graph.neighbors(node):
+        list_nodes.append(node)
+        neighbors=list(graph.neighbors(node))
+        neighbors.sort()
+        for neighbor in neighbors:
             if neighbor not in visited:
                 stack.append(neighbor)
-    st.subheader(' → '.join(list))
+    st.subheader(' → '.join(list_nodes))
     st.divider()
     return visited
     # drawGraph(graph)
@@ -125,13 +129,12 @@ def get_component_edges(edges, component):
             component_edges.append(component[0])
     else :
         for edge in edges:
+            # nếu cả 2 đỉnh thuộc cùng bộ phận thì thêm cung
             if edge[0] in component and edge[1] in component:
                 component_edges.append(edge)
     return component_edges
 
-
 # Vẽ đồ thị
-
 def drawGraph(graph, directed):
     vis = Network(height="350px", width="100%", directed=directed)
     vis.from_nx(graph)
@@ -150,7 +153,7 @@ def main():
     st.sidebar.subheader("📝Nhập đồ thị:")
     directed = st.sidebar.toggle("Có hướng")
     edges = st.sidebar.text_area(
-        "Danh sách cung (cạnh):", value="1 2 4\n2 3 5\n3 1 10\n5 6 2\n6 5 3\n7")
+        "Danh sách cung (cạnh):", value="1 3 4\n3 2 5\n2 1 10\n5 6 2\n6 5 3\n7")
     has_weights = False
     edges = [tuple(edge.split()) for edge in edges.splitlines()]
     # for _ in edges:
@@ -178,15 +181,17 @@ def main():
 
     if st.sidebar.button("Duyệt"):
         if traversalMethod == "Duyệt theo chiều rộng (BFS)":
-            mark=[]
-            for node in graph.nodes:
-                if node not in mark:
-                    bfs(graph, startNode)
+            nodes=set(graph.nodes)-bfs(graph, startNode)
+            while nodes:
+                lst=list(nodes)
+                lst.sort()
+                nodes=nodes-bfs(graph,lst[0])
         elif traversalMethod == "Duyệt theo chiều sâu (DFS)":
-            mark=[]
-            for node in graph.nodes:
-                if node not in mark:
-                    dfs(graph, startNode)
+            nodes=set(graph.nodes)-dfs(graph, startNode)
+            while nodes:
+                lst=list(nodes)
+                lst.sort()
+                nodes=nodes-dfs(graph,lst[0])
             
 
     st.sidebar.divider()
@@ -200,9 +205,6 @@ def main():
         for component in strong_components:
             component_edges = get_component_edges(list(edges), component)
             component_edges_list.append(component_edges)
-        
-        print(strong_components)
-        print(component_edges_list)
         
         if directed:
             st.subheader(
