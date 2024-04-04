@@ -6,7 +6,6 @@ def bellman_ford(graph, start_node, edges):
     shortest_paths = {node: float('inf') for node in graph.nodes}
     shortest_paths[start_node] = 0
 
-    # Thư giãn các cạnh |V| - 1 lần
     for _ in range(len(graph.nodes) - 1):
         for edge in edges:
             if len(edge) == 1:
@@ -24,3 +23,22 @@ def bellman_ford(graph, start_node, edges):
             st.toast('Đồ thị chứa chu trình trọng số âm!', icon='⚠️')
 
     return shortest_paths
+
+'''
+Test Case:
+1 2 9
+1 6 6
+1 7 15
+2 3 10
+6 3 18
+6 5 30
+6 7 -8
+7 5 20
+3 5 -16
+5 4 11
+4 3 6
+3 8 19
+4 8 6
+5 8 16
+7 8 44
+'''

@@ -7,6 +7,7 @@ import pandas as pd
 from algo_lib.search import dfs, bfs
 from algo_lib.scc import Tarjan
 from algo_lib.shortest_path import bellman_ford
+from algo_lib.topo import topo_sort
 
 st.set_page_config(layout="centered",
                    page_title="GraphVify",
@@ -78,15 +79,20 @@ def main():
     with st.popover("Hướng dẫn 📎"):
         st.markdown("**Giới thiệu**\n\nỨng dụng web này cho phép bạn mô phỏng các thao tác cơ bản trên đồ thị, bao gồm:\n *   Nhập đồ thị\n*   Duyệt đồ thị\n*   Kiểm tra tính liên thông\n* Tìm đường đi ngắn nhất\n\n **Hướng dẫn sử dụng**\n\n")
         with st.expander("Nhập đồ thị"):
-            st.markdown("1.Chọn phương thức nhập (Có hướng/ Vô hướng).\n\n 2.Nhập từng cặp đỉnh và trọng số (start end weight) của mỗi cạnh trên một dòng cách nhau bởi một khoảng trắng.\n\n 3.Nhấp vào nút 'Nhập'.")
+            st.markdown("1.Chọn phương thức nhập **(Có hướng/ Vô hướng)**.\n\n 2.Nhập từng cặp đỉnh và trọng số (start end weight) của mỗi cạnh trên một dòng cách nhau bởi một khoảng trắng.\n\n 3.Nhấp vào nút **'Nhập'**.")
         with st.expander("Duyệt đồ thị"):
-            st.markdown("1.Nhập đồ thị.\n\n2.Chọn đỉnh bắt đầu.\n\n3.Chọn thuật toán duyệt:\n\n*   Duyệt theo chiều sâu (DFS)\n*   Duyệt theo chiều rộng (BFS)\n\n4.Bấm nút 'Duyệt'.\n\n5.Kết quả sẽ hiển thị trong bảng điều khiển.")
+            st.markdown("1.Nhập đồ thị.\n\n2.Chọn đỉnh bắt đầu.\n\n3.Chọn thuật toán duyệt:\n\n*   Duyệt theo chiều sâu (DFS)\n*   Duyệt theo chiều rộng (BFS)\n\n4.Bấm nút **'Duyệt'**.\n\n5.Kết quả sẽ hiển thị trong bảng điều khiển.")
         with st.expander("Kiểm tra tính liên thông"):
-            st.markdown("1.Nhập đồ thị.\n\n2.Nhấn nút 'Kiểm tra'.\n\n3.Kết quả kiểm tra sẽ được hiển thị trong bảng điều khiển bao gồm:\n\n*   Số lượng bộ phân liên thông/ liên thông mạnh\n*   Các bộ phân liên thông/ liên thông mạnh")
+            st.markdown("1.Nhập đồ thị.\n\n2.Nhấn nút **'Kiểm tra'**.\n\n3.Kết quả kiểm tra sẽ được hiển thị trong bảng điều khiển bao gồm:\n\n*   Số lượng bộ phân liên thông/ liên thông mạnh\n*   Các bộ phân liên thông/ liên thông mạnh")
         with st.expander("Tìm đường đi ngắn nhất"):
-            st.markdown("1.Nhập đồ thị (có trọng số).\n\n2.Chọn đỉnh nguồn.\n\n3.Nhấn nút 'tìm'.\n\n4.Kết quả sẽ được hiển thị trong bảng điều khiển dưới dạng:\n\n    A -> B : Đường đi ngắn nhất\n\nNếu kết quả trả về dạng:\n\n    A -> B : ♾️\n\n tức là không có đường đi từ A -> B.")
+            st.markdown("1.Nhập đồ thị **(có trọng số)**.\n\n2.Chọn đỉnh nguồn.\n\n3.Nhấn nút **'Tìm'**.\n\n4.Kết quả sẽ được hiển thị trong bảng điều khiển dưới dạng:\n\n    A -> B : Đường đi ngắn nhất\n\nNếu kết quả trả về dạng:\n\n    A -> B : ♾️\n\n tức là không có đường đi từ A -> B.")
+        with st.expander("Thứ tự Topo"):
+            df = pd.DataFrame(['a', 'b', 'c', 'd'], columns=['Đỉnh']).T
+            dfmarkdown = df.to_markdown()
+            st.markdown("1.Nhập đồ thị **(có hướng không có chu trình)**.\n\n2.Nhấn nút **'Thực hiện'**.\n\n3.Kết quả sẽ được hiển thị trong bảng điều khiển dưới dạng: \n" + dfmarkdown + "\n\n Tương ứng với thứ tự topo: **a,b,c,d**")
+
     # Nhập danh sách cung
-    st.sidebar.subheader("📝Nhập đồ thị:")
+    st.sidebar.subheader("Nhập đồ thị:")
     directed = st.sidebar.toggle("Có hướng")
     edges = st.sidebar.text_area(
         "Danh sách cung (cạnh):", value="1 3 4\n3 2 5\n2 1 10\n5 6 2\n6 5 3\n7")
@@ -111,7 +117,7 @@ def main():
 
     st.sidebar.divider()
 
-    st.sidebar.subheader("🪄Duyệt đồ thị:")
+    st.sidebar.subheader("Duyệt đồ thị:")
     startNode = st.sidebar.selectbox(
         "Chọn đỉnh bắt đầu:", options=list(graph.nodes()))
     traversalMethod = st.sidebar.selectbox(
@@ -133,7 +139,7 @@ def main():
 
     st.sidebar.divider()
 
-    st.sidebar.subheader("🔃Kiểm tra tính liên thông:")
+    st.sidebar.subheader("Kiểm tra tính liên thông:")
     st.sidebar.caption(
         "Sử dụng thuật toán :violet[Tarjan] - đếm số lượng bộ phận :red[Liên thông]/ :blue[Liên thông mạnh] của đồ thị :red[Vô hướng]/ :blue[Có hướng]")
     if st.sidebar.button("Kiểm tra"):
@@ -156,7 +162,7 @@ def main():
                 st.text(f"Bộ phận liên thông {i+1}:")
                 drawGraph(createGraph(component), directed)
     st.sidebar.divider()
-    st.sidebar.subheader("🤏Tìm đường đi ngắn nhất:")
+    st.sidebar.subheader("Tìm đường đi ngắn nhất:")
     st.sidebar.caption(
         "Tìm đường đi ngắn nhất từ 1 đỉnh đến các đỉnh còn lại sử dụng thuật toán :violet[Bellman Ford]")
     start_node = st.sidebar.selectbox('Chọn đỉnh nguồn:', graph.nodes)
@@ -172,6 +178,23 @@ def main():
                             st.subheader(f"{start_node} -> {node}: ♾️")
         else:
             st.toast('Vui lòng nhập trọng số!', icon='⚠️')
+
+    st.sidebar.divider()
+    st.sidebar.subheader("Thứ tự topo:")
+    st.sidebar.caption(
+        "Xếp các đỉnh của đồ thị :red[có hướng không có chu trình (DAG)] theo thứ tự topo")
+    if st.sidebar.button("Thực hiện"):
+        if directed:
+            try:
+                topo_order = []
+                topo_sort(graph, topo_order, edges)
+            except:
+                st.toast(
+                    'Đồ thị không phải là DAG, không thể tính toán thứ tự topo.', icon='⚠️')
+                return
+            st.table(pd.DataFrame(topo_order, columns=['Đỉnh']).T)
+        else:
+            st.toast('Đồ thị vô hướng không thể tính toán thứ tự topo!', icon='⚠️')
 
 
 if __name__ == "__main__":

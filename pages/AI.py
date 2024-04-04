@@ -4,7 +4,7 @@ import time
 import random
 
 st.set_page_config(layout="centered",
-                   page_title="AI Chatbot",
+                   page_title="GraphCoach",
                    page_icon="🤖",
                    initial_sidebar_state="expanded")
 

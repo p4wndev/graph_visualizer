@@ -1,5 +1,6 @@
 import streamlit as st
 
+
 def bfs(graph, start_node):
     visited = set()
     queue = [start_node]
@@ -21,6 +22,27 @@ def bfs(graph, start_node):
     st.divider()
     return visited
     # drawGraph(graph)
+
+
+'''
+Test case:
+13 15
+1 4
+1 2
+1 12
+2 4
+3 7
+4 6
+4 7
+5 8
+5 9
+6 7
+6 13
+8 9
+10 11
+10 12
+11 12
+'''
 
 # Duyệt đồ thị theo chiều sâu
 
