@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as st 
 import networkx as nx
 import pyvis as pv
 from pyvis.network import Network
@@ -8,6 +8,8 @@ from algo_lib.search import dfs, bfs
 from algo_lib.scc import Tarjan
 from algo_lib.shortest_path import bellman_ford
 from algo_lib.topo import topo_sort
+from algo_lib.mst import Kruskal
+
 
 st.set_page_config(layout="centered",
                    page_title="GraphVify",
@@ -87,19 +89,19 @@ def main():
         with st.expander("Tìm đường đi ngắn nhất"):
             st.markdown("1.Nhập đồ thị **(có trọng số)**.\n\n2.Chọn đỉnh nguồn.\n\n3.Nhấn nút **'Tìm'**.\n\n4.Kết quả sẽ được hiển thị trong bảng điều khiển dưới dạng:\n\n    A -> B : Đường đi ngắn nhất\n\nNếu kết quả trả về dạng:\n\n    A -> B : ♾️\n\n tức là không có đường đi từ A -> B.")
         with st.expander("Thứ tự Topo"):
-            df = pd.DataFrame(['a', 'b', 'c', 'd'], columns=['Đỉnh']).T
-            dfmarkdown = df.to_markdown()
-            st.markdown("1.Nhập đồ thị **(có hướng không có chu trình)**.\n\n2.Nhấn nút **'Thực hiện'**.\n\n3.Kết quả sẽ được hiển thị trong bảng điều khiển dưới dạng: \n" + dfmarkdown + "\n\n Tương ứng với thứ tự topo: **a,b,c,d**")
-
+            # df = pd.DataFrame(['a', 'b', 'c', 'd'], columns=['Đỉnh']).T
+            # dfmarkdown = df.to_markdown()
+            # st.markdown("1.Nhập đồ thị **(có hướng không có chu trình)**.\n\n2.Nhấn nút **'Thực hiện'**.\n\n3.Kết quả sẽ được hiển thị trong bảng điều khiển dưới dạng: \n" + dfmarkdown + "\n\n Tương ứng với thứ tự topo: **a,b,c,d**")
+            pass
     # Nhập danh sách cung
     st.sidebar.subheader("Nhập đồ thị:")
     directed = st.sidebar.toggle("Có hướng")
     edges = st.sidebar.text_area(
-        "Danh sách cung (cạnh):", value="1 3 4\n3 2 5\n2 1 10\n5 6 2\n6 5 3\n7")
+        "Danh sách cung (cạnh):", value="1 3 4\n3 2 5\n2 1 10\n5 6 2\n6 5 3\n3 5 1")
     has_weights = False
     edges = [tuple(edge.split()) for edge in edges.splitlines()]
-    for _ in edges:
-        print(_)
+    # for _ in edges:
+    #     print(_)
     # graph = createGraph(edges)
     for edge in edges:
         if len(edge) == 3:
@@ -192,10 +194,30 @@ def main():
                 st.toast(
                     'Đồ thị không phải là DAG, không thể tính toán thứ tự topo.', icon='⚠️')
                 return
-            st.table(pd.DataFrame(topo_order, columns=['Đỉnh']).T)
+            # st.table(pd.DataFrame(topo_order, columns=['Đỉnh']).T)
+            
+            st.subheader('Thứ tự topo: '+', '.join(topo_order))
         else:
             st.toast('Đồ thị vô hướng không thể tính toán thứ tự topo!', icon='⚠️')
+    
+    st.sidebar.divider()
 
+    st.sidebar.subheader("Tìm cây khung nhỏ nhất:")
+    st.sidebar.caption("Sử dụng thuật toán :violet[Kruskal] để tìm cây khung nhỏ nhất")
+    if st.sidebar.button("Tìm cây khung"):
+        strong_components = Tarjan(graph)
+        if directed:
+            st.toast('Đồ thị có hướng không thể tìm cây khung nhỏ nhất!', icon='⚠️')
+        elif len(strong_components) != 1:
+            st.toast("Đồ thị không liên thông không thể tìm cây khung nhỏ nhất!", icon='⚠️')
+        else:
+            mst = Kruskal(graph, edges)
+            mst_graph = createGraph(mst[0])
+            # print(mst)
+            # print(mst_graph)
+            st.subheader("Cây khung nhỏ nhất")
+            drawGraph(mst_graph, directed)
+            st.subheader(f"Trọng lượng: {mst[1]}")
 
 if __name__ == "__main__":
     main()
