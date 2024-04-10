@@ -8,7 +8,7 @@ from algo_lib.search import dfs, bfs
 from algo_lib.scc import Tarjan
 from algo_lib.shortest_path import bellman_ford
 from algo_lib.topo import topo_sort
-from algo_lib.mst import Kruskal
+from algo_lib.mst import Kruskal, Prim
 
 
 st.set_page_config(layout="centered",
@@ -203,7 +203,11 @@ def main():
     st.sidebar.divider()
 
     st.sidebar.subheader("Tìm cây khung nhỏ nhất:")
-    st.sidebar.caption("Sử dụng thuật toán :violet[Kruskal] để tìm cây khung nhỏ nhất")
+    st.sidebar.caption("Sử dụng thuật toán :violet[Kruskal] hoặc :violet[Prim] để tìm cây khung nhỏ nhất")
+    mst_algo = st.sidebar.selectbox("Chọn thuật toán:", options=["Kruskal", "Prim"])
+    if mst_algo == "Prim":
+        start_node_Prim = st.sidebar.selectbox("Chọn đỉnh bắt đầu tìm:", options=list(graph.nodes()))
+        # print(type(start_node_Prim))
     if st.sidebar.button("Tìm cây khung"):
         strong_components = Tarjan(graph)
         if directed:
@@ -211,13 +215,21 @@ def main():
         elif len(strong_components) != 1:
             st.toast("Đồ thị không liên thông không thể tìm cây khung nhỏ nhất!", icon='⚠️')
         else:
-            mst = Kruskal(graph, edges)
+            if mst_algo == "Kruskal":
+                mst = Kruskal(graph)
+                # print(mst)
+            elif mst_algo == "Prim":
+                mst = Prim(graph, start_node_Prim)
+                # print(mst)
             mst_graph = createGraph(mst[0])
             # print(mst)
             # print(mst_graph)
             st.subheader("Cây khung nhỏ nhất")
             drawGraph(mst_graph, directed)
             st.subheader(f"Trọng lượng: {mst[1]}")
+    # edges = ['3','2','1']
+    # edges.sort(reverse=False)
+    # print(edges)
 
 if __name__ == "__main__":
     main()
