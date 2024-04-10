@@ -18,8 +18,6 @@ st.set_page_config(layout="centered",
 
 # TẠO ĐỒ THỊ
 # Vô hướng
-
-
 def createGraph(edges):
     G = nx.Graph()
     for edge in edges:
@@ -36,8 +34,6 @@ def createGraph(edges):
     return G
 
 # Có hướng
-
-
 def createDiGraph(edges):
     G = nx.DiGraph()
     for edge in edges:
@@ -54,8 +50,6 @@ def createDiGraph(edges):
 
 
 # Vẽ đồ thị
-
-
 def drawGraph(graph, directed):
     vis = Network(height="350px", width="100%", directed=directed)
     vis.from_nx(graph)
@@ -208,6 +202,7 @@ def main():
                 mst = Prim(graph, start_node_Prim)
             
             mst_graph = createGraph(mst[0])
+
             
             st.subheader("Cây khung nhỏ nhất")
             drawGraph(mst_graph, directed)
@@ -217,5 +212,17 @@ def main():
     # print(lst)
     # print(type(lst[0]))
     # print(list(set(graph.nodes)-set(['1','2'])))
+
+            # print(mst)
+            # print(mst_graph)
+            with st.expander("🌲Cây khung nhỏ nhất"):
+            # st.subheader("Cây khung nhỏ nhất")
+                drawGraph(mst_graph, directed)
+                st.markdown(f"Trọng lượng: **:green[{mst[1]}]**")
+    # edges = ['3','2','1']
+    # edges.sort(reverse=False)
+    # print(edges)
+
+
 if __name__ == "__main__":
     main()
