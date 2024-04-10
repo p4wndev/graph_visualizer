@@ -16,8 +16,6 @@ st.set_page_config(layout="centered",
 
 # TẠO ĐỒ THỊ
 # Vô hướng
-
-
 def createGraph(edges):
     G = nx.Graph()
     for edge in edges:
@@ -34,8 +32,6 @@ def createGraph(edges):
     return G
 
 # Có hướng
-
-
 def createDiGraph(edges):
     G = nx.DiGraph()
     for edge in edges:
@@ -62,8 +58,6 @@ def get_component_edges(edges, component):
     return component_edges
 
 # Vẽ đồ thị
-
-
 def drawGraph(graph, directed):
     vis = Network(height="350px", width="100%", directed=directed)
     vis.from_nx(graph)
