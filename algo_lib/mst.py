@@ -9,11 +9,12 @@ def Kruskal(graph):
     # sắp xếp các cung theo thứ tự tăng dần
     sort_edges = []
     list_w = [float(graph.get_edge_data(edge[0],edge[1]).get('label')) for edge in edges]
+    # print(list_w)
     for _ in range(0,len(edges)):
         min_index = list_w.index(min(list_w))
         list_w[min_index] = float('inf')
         sort_edges.append(edges[min_index])
-    
+    # print(sort_edges)
     sum_w = 0
     return_edges = []
     # duyệt qua danh sách đã sắp xếp, với mỗi cặp đỉnh (u, v) tìm đỉnh gốc của chúng

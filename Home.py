@@ -73,7 +73,7 @@ def main():
     # Giao diện người dùng
     st.title("✨Graph:red[Vify]")
     with st.popover("Hướng dẫn 📎"):
-        st.markdown("**Giới thiệu**\n\nỨng dụng web này cho phép bạn mô phỏng các thao tác cơ bản trên đồ thị, bao gồm:\n *   Nhập đồ thị\n*   Duyệt đồ thị\n*   Kiểm tra tính liên thông\n* Tìm đường đi ngắn nhất\n\n **Hướng dẫn sử dụng**\n\n")
+        st.markdown("**Giới thiệu**\n\nỨng dụng web này cho phép bạn mô phỏng các thao tác cơ bản trên đồ thị, bao gồm:\n *   Nhập đồ thị\n*   Duyệt đồ thị\n*   Kiểm tra tính liên thông\n* Tìm đường đi ngắn nhất\n* Tìm cây khung nhỏ nhất\n\n **Hướng dẫn sử dụng**\n\n")
         with st.expander("Nhập đồ thị"):
             st.markdown("1.Chọn phương thức nhập **(Có hướng/ Vô hướng)**.\n\n 2.Nhập từng cặp đỉnh và trọng số (start end weight) của mỗi cạnh trên một dòng cách nhau bởi một khoảng trắng.\n\n 3.Nhấp vào nút **'Nhập'**.")
         with st.expander("Duyệt đồ thị"):
@@ -83,10 +83,9 @@ def main():
         with st.expander("Tìm đường đi ngắn nhất"):
             st.markdown("1.Nhập đồ thị **(có trọng số)**.\n\n2.Chọn đỉnh nguồn.\n\n3.Nhấn nút **'Tìm'**.\n\n4.Kết quả sẽ được hiển thị trong bảng điều khiển dưới dạng:\n\n    A -> B : Đường đi ngắn nhất\n\nNếu kết quả trả về dạng:\n\n    A -> B : ♾️\n\n tức là không có đường đi từ A -> B.")
         with st.expander("Thứ tự Topo"):
-            # df = pd.DataFrame(['a', 'b', 'c', 'd'], columns=['Đỉnh']).T
-            # dfmarkdown = df.to_markdown()
-            # st.markdown("1.Nhập đồ thị **(có hướng không có chu trình)**.\n\n2.Nhấn nút **'Thực hiện'**.\n\n3.Kết quả sẽ được hiển thị trong bảng điều khiển dưới dạng: \n" + dfmarkdown + "\n\n Tương ứng với thứ tự topo: **a,b,c,d**")
-            pass
+            st.markdown("1.Nhập đồ thị **(có hướng không có chu trình)**.\n\n2.Nhấn nút **'Thực hiện'**.\n\n3.Kết quả sẽ được hiển thị trong bảng điều khiển.")
+        with st.expander("Tìm cây khung nhỏ nhất"):
+            st.markdown("1.Nhập đồ thị **(Có trọng số - Vô hướng - Liên thông)**.\n\n2.Chọn thuật toán:\n* Kruskal\n* Prim\n\n3.Nhấn nút **tìm cây khung**.\n\n4.Kết quả sẽ được hiển thị trong bảng điều khiển:\n* Cây khung nhỏ nhất\n* Trọng lượng")
     # Nhập danh sách cung
     st.sidebar.subheader("Nhập đồ thị:")
     directed = st.sidebar.toggle("Có hướng")
@@ -218,9 +217,10 @@ def main():
             mst_graph = createGraph(mst[0])
             # print(mst)
             # print(mst_graph)
-            st.subheader("Cây khung nhỏ nhất")
-            drawGraph(mst_graph, directed)
-            st.subheader(f"Trọng lượng: {mst[1]}")
+            with st.expander("🌲Cây khung nhỏ nhất"):
+            # st.subheader("Cây khung nhỏ nhất")
+                drawGraph(mst_graph, directed)
+                st.markdown(f"Trọng lượng: **:green[{mst[1]}]**")
     # edges = ['3','2','1']
     # edges.sort(reverse=False)
     # print(edges)
