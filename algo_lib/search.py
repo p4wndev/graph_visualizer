@@ -1,7 +1,7 @@
 def bfs(graph, start_node):
+    visited = set()
     components = []
     def BFS(graph, start_node):
-        visited = set()
         queue = [start_node]
         order = []
         
@@ -27,9 +27,9 @@ def bfs(graph, start_node):
     return components
 
 def dfs(graph, start_node):
+    visited = set()
     components = []
     def DFS(graph, start_node):
-        visited = set()
         stack = [start_node]
         order = []
         
@@ -59,6 +59,7 @@ def dfs_recursion(graph, start_node):
     components = []
     def DFS(graph, start_node):
         order = []
+        
         def recursion(node):
             visited.add(node)
             order.append(node)
