@@ -49,9 +49,9 @@ def dfs(graph, start_node):
     # duyệt toàn bộ đồ thị
     nodes = set(graph.nodes)-DFS(graph, start_node)
     while nodes:
-        lst = list(nodes)
+        lst = [int(node) for node in nodes]
         lst.sort()
-        nodes = nodes-DFS(graph, lst[0])
+        nodes = nodes-DFS(graph, str(lst[0]))
     return components
 
 def dfs_recursion(graph, start_node):
@@ -74,9 +74,9 @@ def dfs_recursion(graph, start_node):
      # duyệt toàn bộ đồ thị
     nodes = set(graph.nodes)-DFS(graph, start_node)
     while nodes:
-        lst = list(nodes)
+        lst = [int(node) for node in nodes]
         lst.sort()
-        nodes = nodes-DFS(graph, lst[0])
+        nodes = nodes-DFS(graph, str(lst[0]))
     return components
 
 '''
