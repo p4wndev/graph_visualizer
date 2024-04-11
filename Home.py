@@ -4,7 +4,7 @@ import pyvis as pv
 from pyvis.network import Network
 import streamlit.components.v1 as components
 import pandas as pd
-from algo_lib.search import dfs, bfs
+from algo_lib.search import dfs, bfs, dfs_recursion
 from algo_lib.scc import Tarjan
 from algo_lib.shortest_path import bellman_ford
 from algo_lib.topo import topo_sort
@@ -48,16 +48,6 @@ def createDiGraph(edges):
     return G
 
 
-def get_component_edges(edges, component):
-    component_edges = []
-    if len(component) == 1:
-        component_edges.append(component[0])
-    else:
-        for edge in edges:
-            # nếu cả 2 đỉnh thuộc cùng bộ phận thì thêm cung
-            if edge[0] in component and edge[1] in component:
-                component_edges.append(edge)
-    return component_edges
 
 # Vẽ đồ thị
 def drawGraph(graph, directed):
@@ -87,18 +77,14 @@ def main():
         with st.expander("Tìm cây khung nhỏ nhất"):
             st.markdown("1.Nhập đồ thị **(Có trọng số - Vô hướng - Liên thông)**.\n\n2.Chọn thuật toán:\n* Kruskal\n* Prim\n\n3.Nhấn nút **tìm cây khung**.\n\n4.Kết quả sẽ được hiển thị trong bảng điều khiển:\n* Cây khung nhỏ nhất\n* Trọng lượng")
     # Nhập danh sách cung
+
+    # Nhập đồ thị
     st.sidebar.subheader("Nhập đồ thị:")
     directed = st.sidebar.toggle("Có hướng")
     edges = st.sidebar.text_area(
         "Danh sách cung (cạnh):", value="1 3 4\n3 2 5\n2 1 10\n5 6 2\n6 5 3\n3 5 1")
-    has_weights = False
-    edges = [tuple(edge.split()) for edge in edges.splitlines()]
-    # for _ in edges:
-    #     print(_)
-    # graph = createGraph(edges)
-    for edge in edges:
-        if len(edge) == 3:
-            has_weights = True
+    edges = [edge.split() for edge in edges.splitlines()]
+    # Vẽ đồ thị
     if directed:
         graph = createDiGraph(edges)
         with st.expander("Đồ thị", expanded=True):
@@ -107,62 +93,65 @@ def main():
         graph = createGraph(edges)
         with st.expander("Đồ thị", expanded=True):
             drawGraph(graph, directed)
-
     st.sidebar.button("Nhập")
 
     st.sidebar.divider()
-
     st.sidebar.subheader("Duyệt đồ thị:")
-    startNode = st.sidebar.selectbox(
+    start_node = st.sidebar.selectbox(
         "Chọn đỉnh bắt đầu:", options=list(graph.nodes()))
     traversalMethod = st.sidebar.selectbox(
-        "Chọn phương thức duyệt:", options=["Duyệt theo chiều rộng (BFS)", "Duyệt theo chiều sâu (DFS)"])
-
+        "Chọn phương thức duyệt:", options=["Duyệt theo chiều rộng (BFS)", "Duyệt theo chiều sâu (DFS)", "Duyệt theo chiều sâu (DFS Đệ quy)"])
     if st.sidebar.button("Duyệt"):
         if traversalMethod == "Duyệt theo chiều rộng (BFS)":
-            nodes = set(graph.nodes)-bfs(graph, startNode)
-            while nodes:
-                lst = list(nodes)
-                lst.sort()
-                nodes = nodes-bfs(graph, lst[0])
+            st.markdown("<p>Thứ tự duyệt theo chiều rộng: </p>",unsafe_allow_html=True)
+            for component in bfs(graph, start_node):
+                st.subheader(' → '.join(component))
+                st.divider()
         elif traversalMethod == "Duyệt theo chiều sâu (DFS)":
-            nodes = set(graph.nodes)-dfs(graph, startNode)
-            while nodes:
-                lst = list(nodes)
-                lst.sort()
-                nodes = nodes-dfs(graph, lst[0])
+            st.markdown("<p>Thứ tự duyệt theo chiều sâu: </p>",unsafe_allow_html=True)
+            for component in dfs(graph, start_node):
+                st.subheader(' → '.join(component))
+                st.divider()
+        elif traversalMethod == "Duyệt theo chiều sâu (DFS Đệ quy)":
+            st.markdown("<p>Thứ tự duyệt theo chiều sâu: </p>",unsafe_allow_html=True)
+            for component in dfs_recursion(graph, start_node):
+                st.subheader(' → '.join(component))
+                st.divider()
 
     st.sidebar.divider()
-
     st.sidebar.subheader("Kiểm tra tính liên thông:")
     st.sidebar.caption(
-        "Sử dụng thuật toán :violet[Tarjan] - đếm số lượng bộ phận :red[Liên thông]/ :blue[Liên thông mạnh] của đồ thị :red[Vô hướng]/ :blue[Có hướng]")
+        "Kiểm tra :red[tính liên thông] của đồ thị :blue[vô hướng]. \nDùng thuật toán :violet[Tarjan] đếm số lượng bộ phận :red[liên thông mạnh] của đồ thị :blue[có hướng].")
     if st.sidebar.button("Kiểm tra"):
-        strong_components = Tarjan(graph)
-        component_edges_list = []
-        for component in strong_components:
-            component_edges = get_component_edges(list(edges), component)
-            component_edges_list.append(component_edges)
-
         if directed:
-            st.subheader(
-                f"Đồ thị có :blue[{len(component_edges_list)} bộ phận liên thông mạnh]")
-            for i, component in enumerate(component_edges_list):
+            scc = Tarjan(graph)
+            print(scc)
+            st.subheader(f"Đồ thị có :blue[{len(scc)} bộ phận liên thông mạnh]")
+            for i, component in enumerate(scc):
+                component_graph = graph.copy()
+                component_graph.remove_nodes_from(set(graph.nodes)-set(component))
                 st.text(f"Bộ phận liên thông mạnh {i+1}:")
-                drawGraph(createDiGraph(component), directed)
+                drawGraph(component_graph, directed)
         else:
-            st.subheader(
-                f"Đồ thị có :blue[{len(component_edges_list)} bộ phận liên thông]")
-            for i, component in enumerate(component_edges_list):
-                st.text(f"Bộ phận liên thông {i+1}:")
-                drawGraph(createGraph(component), directed)
+            list_component  = bfs(graph, start_node)
+            if len(list_component) == 1:
+                st.subheader(":blue[Đồ thị có tính liên thông!]")
+                drawGraph(graph, directed)
+            else:
+                st.subheader(":red[Đồ thị không liên thông!]")
+                for i, component in enumerate(list_component):
+                    st.text(f"Bộ phận liên thông {i+1}:")
+                    component_graph = graph.copy()
+                    component_graph.remove_nodes_from(set(graph.nodes)-set(component))
+                    drawGraph(component_graph, directed)
+    # CẬP NHẬT ĐẾN ĐÂY                 
     st.sidebar.divider()
     st.sidebar.subheader("Tìm đường đi ngắn nhất:")
     st.sidebar.caption(
         "Tìm đường đi ngắn nhất từ 1 đỉnh đến các đỉnh còn lại sử dụng thuật toán :violet[Bellman Ford]")
     start_node = st.sidebar.selectbox('Chọn đỉnh nguồn:', graph.nodes)
     if st.sidebar.button("Tìm"):
-        if has_weights:
+        if all(len(edge)==3 for edge in edges):
             if start_node in graph.nodes:
                 shortest_paths = bellman_ford(graph, start_node, edges)
                 with st.expander(f"Đường đi ngắn nhất từ đỉnh :blue[{start_node}] đến tất cả các đỉnh khác là:"):
@@ -194,27 +183,36 @@ def main():
             st.toast('Đồ thị vô hướng không thể tính toán thứ tự topo!', icon='⚠️')
     
     st.sidebar.divider()
-
     st.sidebar.subheader("Tìm cây khung nhỏ nhất:")
     st.sidebar.caption("Sử dụng thuật toán :violet[Kruskal] hoặc :violet[Prim] để tìm cây khung nhỏ nhất")
     mst_algo = st.sidebar.selectbox("Chọn thuật toán:", options=["Kruskal", "Prim"])
     if mst_algo == "Prim":
         start_node_Prim = st.sidebar.selectbox("Chọn đỉnh bắt đầu tìm:", options=list(graph.nodes()))
-        # print(type(start_node_Prim))
     if st.sidebar.button("Tìm cây khung"):
-        strong_components = Tarjan(graph)
         if directed:
             st.toast('Đồ thị có hướng không thể tìm cây khung nhỏ nhất!', icon='⚠️')
-        elif len(strong_components) != 1:
+        elif len(bfs(graph, list(graph.nodes)[0])) != len(graph.nodes):
             st.toast("Đồ thị không liên thông không thể tìm cây khung nhỏ nhất!", icon='⚠️')
+        elif not all(len(edge) == 3 for edge in edges) :
+            st.toast("Vui lòng nhập trọng số cho tất cả cung!", icon='⚠️')
         else:
             if mst_algo == "Kruskal":
                 mst = Kruskal(graph)
-                # print(mst)
             elif mst_algo == "Prim":
                 mst = Prim(graph, start_node_Prim)
-                # print(mst)
+            
             mst_graph = createGraph(mst[0])
+
+            
+            st.subheader("Cây khung nhỏ nhất")
+            drawGraph(mst_graph, directed)
+            st.subheader(f"Trọng lượng: {mst[1]}")
+    # lst={node : float(node) for node in graph.nodes}
+    # lst.sort(reverse=False)
+    # print(lst)
+    # print(type(lst[0]))
+    # print(list(set(graph.nodes)-set(['1','2'])))
+
             # print(mst)
             # print(mst_graph)
             with st.expander("🌲Cây khung nhỏ nhất"):
@@ -224,6 +222,7 @@ def main():
     # edges = ['3','2','1']
     # edges.sort(reverse=False)
     # print(edges)
+
 
 if __name__ == "__main__":
     main()
