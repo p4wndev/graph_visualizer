@@ -6,8 +6,8 @@ import streamlit.components.v1 as components
 import pandas as pd
 from algo_lib.search import dfs, bfs, dfs_recursion
 from algo_lib.scc import Tarjan
-from algo_lib.shortest_path import Moore_Dijkstra, Bellman_Ford, negative_weight_cycle
-from algo_lib.topo import topo_sort
+from algo_lib.shortest_path import Moore_Dijkstra, Bellman_Ford, Floyd_Warshall, negative_weight_cycle
+from algo_lib.topo import topo_sort, rank
 from algo_lib.mst import Kruskal, Prim
 
 
@@ -165,6 +165,7 @@ def main():
     if ways_to_search == 'Giữa 2 đỉnh':
         finish_node = st.sidebar.selectbox('Chọn đỉnh cuối:', options = nodes)
     if st.sidebar.button("Tìm"):
+        # -------------- #
         def _2node_(path_graph, finish_node):
             if path_graph[1] == float('inf'):
                 str_ps = f":red[Không có đường đi] từ đỉnh :blue[{start_node}] đến đỉnh :blue[{finish_node}]"
@@ -172,7 +173,7 @@ def main():
                 str_ps = f"Đường đi ngắn nhất từ đỉnh :blue[{start_node}] đến đỉnh :blue[{finish_node}] là: :red[{path_graph[1]}]"
             with st.expander(str_ps):
                 drawGraph(path_graph[0], directed)
-        
+        # -------------- #
         if not all(graph.get_edge_data(edge[0], edge[1])['label'] != '' for edge in graph.edges):
             st.toast('Vui lòng nhập trọng số!', icon='⚠️')
         # Moore-Dijkstra
@@ -187,7 +188,7 @@ def main():
                     _2node_(Moore_Dijkstra(graph, start_node, node), finish_node=node)
         # Bellman-Ford
         elif shortest_paths_algo == 'Bellman-Ford':
-            if negative_weight_cycle(graph, start_node):
+            if negative_weight_cycle(graph, start_node, 'Bellman_Ford'):
                 st.toast("Đồ thị chứa chu trình trọng số âm!", icon='⚠️')
             elif ways_to_search == 'Giữa 2 đỉnh':
                 _2node_(Bellman_Ford(graph, start_node, finish_node), finish_node)
@@ -197,15 +198,19 @@ def main():
                     _2node_(Bellman_Ford(graph, start_node, finish_node), finish_node)
         # Floyd-Warshall
         elif shortest_paths_algo == 'Floyd-Warshall':
-            pass       
-    # CẬP NHẬT ĐẾN ĐÂY    
-            
-
+            if negative_weight_cycle(graph, start_node, 'Floyd_Warshall'):
+                st.toast("Đồ thị chứa chu trình trọng số âm!", icon='⚠️')
+            elif ways_to_search == 'Giữa 2 đỉnh':
+                _2node_(Floyd_Warshall(graph, start_node, finish_node), finish_node)
+            else:
+                st.subheader(f"Đường đi ngắn nhất từ đỉnh :blue[{start_node}] đến tất cả các đỉnh là:")
+                for finish_node in nodes:
+                    _2node_(Floyd_Warshall(graph, start_node, finish_node), finish_node)       
+    # Thứ tự topo 
     st.sidebar.divider()
     st.sidebar.subheader("Thứ tự topo:")
-    st.sidebar.caption(
-        "Xếp các đỉnh của đồ thị :red[có hướng không có chu trình (DAG)] theo thứ tự topo")
-    if st.sidebar.button("Thực hiện"):
+    st.sidebar.caption("Sắp xếp các đỉnh của đồ thị :red[có hướng không có chu trình (DAG)] theo thứ tự topo")
+    if st.sidebar.button("Sắp xếp"):
         if directed:
             try:
                 topo_order = []
@@ -214,21 +219,40 @@ def main():
                 st.toast(
                     'Đồ thị không phải là DAG, không thể tính toán thứ tự topo.', icon='⚠️')
                 return
+            # st.table(pd.DataFrame(topo_order, columns=['Đỉnh']).T)
             
             st.subheader('Thứ tự topo: '+', '.join(topo_order))
         else:
             st.toast('Đồ thị vô hướng không thể tính toán thứ tự topo!', icon='⚠️')
-    
+    # Xếp hạng đồ thị 
     st.sidebar.divider()
-    st.sidebar.subheader("Tìm cây khung nhỏ nhất:")
-    st.sidebar.caption("Sử dụng thuật toán :violet[Kruskal] hoặc :violet[Prim] để tìm cây khung nhỏ nhất")
-    mst_algo = st.sidebar.selectbox("Chọn thuật toán:", options=["Kruskal", "Prim"])
-    if mst_algo == "Prim":
-        start_node_Prim = st.sidebar.selectbox("Chọn đỉnh bắt đầu tìm:", options = nodes)
-    if st.sidebar.button("Tìm cây khung"):
+    st.sidebar.subheader("Xếp hạng đồ thị:")
+    st.sidebar.caption("Ứng dụng :violet[sắp xếp topo] xếp hạng các đỉnh của đồ thị")
+    if st.sidebar.button("Xếp hạng"):
+        if directed:
+            if topo_sort(graph)[1]:#Kiểm tra đồ thị có chứa chu trình hay không
+                rank_topo = rank(graph)
+                for i, rank_num in enumerate(rank_topo):
+                    with st.expander(f"Hạng {i+1}"):
+                        st.subheader(', '.join(rank_num))
+            else:
+                st.toast('Đồ thị chứa chu trình, không thể xếp hạng!', icon='⚠️')
+        else:
+            st.toast('Đồ thị vô hướng không thể xếp hạng!', icon='⚠️')
+        
+    #------------------------------------------------
+    
+    # '''CÂY KHUNG'''
+    
+    #------------------------------------------------
+    print(graph.get_edge_data('1','2'))
+    st.sidebar.divider()
+    st.sidebar.subheader("Luồng cực đại:")
+    st.sidebar.caption("Tìm luồng cực đại trong mạng bằng thuật toán đánh dấu :violet[Ford-Fulkerson]")
+    if st.sidebar.button(":grey[Tìm]"):
         if directed:
             st.toast('Đồ thị có hướng không thể tìm cây khung nhỏ nhất!', icon='⚠️')
-        elif len(bfs(graph, nodes[0])[0]) != len(nodes):
+        elif len(bfs(graph, nodes)[0]) != len(nodes):
             st.toast("Đồ thị không liên thông không thể tìm cây khung nhỏ nhất!", icon='⚠️')
         elif not all(len(edge) == 3 for edge in edges) :
             st.toast("Vui lòng nhập trọng số cho tất cả cung!", icon='⚠️')
@@ -239,8 +263,9 @@ def main():
                 mst = Prim(graph, start_node_Prim)
             
             mst_graph = createGraph(mst[0])
-            with st.expander("Cây khung nhỏ nhất"):
-                drawGraph(mst_graph, directed)
-                st.markdown(f"Trọng lượng: **:green[{mst[1]}]**")
+            
+            st.subheader("Cây khung nhỏ nhất")
+            drawGraph(mst_graph, directed)
+            st.subheader(f"Trọng lượng: {mst[1]}")
 if __name__ == "__main__":
     main()
