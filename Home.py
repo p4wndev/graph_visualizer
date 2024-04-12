@@ -240,7 +240,7 @@ def main():
     # '''CÂY KHUNG'''
     
     #------------------------------------------------
-    print(graph.get_edge_data('1','2'))
+    
     st.sidebar.divider()
     st.sidebar.subheader("Luồng cực đại:")
     st.sidebar.caption("Tìm luồng cực đại trong mạng bằng thuật toán đánh dấu :violet[Ford-Fulkerson]")
@@ -250,7 +250,7 @@ def main():
                 rank_topo = rank(graph)
                 is_network = len(rank_topo[0])==1 and len(rank_topo[-1])==1
                 if is_network:# Kiểm tra đồ thị có phải mạng hay không
-                    max_flow = Ford_Fulkerson(graph)
+                    max_flow = Ford_Fulkerson(graph, rank_topo[0][0], rank_topo[-1][0])
                     max_flow_graph = graph.copy()
                     S, T = max_flow[0], max_flow[1]
                     for s in S:
