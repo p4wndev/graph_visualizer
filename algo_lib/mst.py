@@ -9,12 +9,11 @@ def Kruskal(graph):
     # sắp xếp các cung theo thứ tự tăng dần
     sort_edges = []
     list_w = [float(graph.get_edge_data(edge[0],edge[1]).get('label')) for edge in edges]
-    # print(list_w)
     for _ in range(0,len(edges)):
         min_index = list_w.index(min(list_w))
         list_w[min_index] = float('inf')
         sort_edges.append(edges[min_index])
-    # print(sort_edges)
+    
     sum_w = 0
     return_edges = []
     # duyệt qua danh sách đã sắp xếp, với mỗi cặp đỉnh (u, v) tìm đỉnh gốc của chúng
@@ -69,6 +68,67 @@ def Prim(graph, start_node):
     # trả về danh sách cung của đồ thị mới và trọng lượng của cây khung
     return return_edges, sum_w
 
+def Ford_Fulkerson(graph, s, t):
+    nodes = [int(node) for node in graph.nodes]
+    nodes.sort(reverse=False)
+    nodes = [str(node) for node in nodes]
+    F = {u : {v : 0 for v in nodes} for u in nodes}
+    C = {u : {v : 0 for v in nodes} for u in nodes}
+    for u in nodes:
+        for v in nodes:
+            if graph.has_edge(u, v):
+                C[u][v] = float(graph.get_edge_data(u, v)['label'])
+    # for u in nodes:
+    #     for v in nodes:
+    #         print(C[u][v])
+        
+    dir = {node : 0 for node in nodes}
+    pre = {node : str() for node in nodes}
+    sigma = {node : float('inf') for node in nodes}
+    sum_flow = 0
+    queue = []
+    while True:
+        dir = {node : 0 for node in nodes}
+        dir[s], pre[s], sigma[s] = 1, s, float('inf')
+        queue = []
+        queue.append(s)
+        
+        found = False
+        while queue:
+            u = queue.pop(0)
+            for v in nodes:
+                if dir[v] == 0 and C[u][v] != 0 and F[u][v] < C[u][v]:
+                    dir[v], pre[v], sigma[v] = 1, u, min(sigma[u], C[u][v]-F[u][v])
+                    queue.append(v)
+            for x in nodes:    
+                if dir[x]==0 and C[x][u] != 0 and F[x][u] > 0:
+                    dir[x], pre[x], sigma[x] = -1, u, min(sigma[u], F[x][u])
+                    queue.append(v)
+            if dir[t] != 0:
+                found = True
+                break        
+        if found:
+            x = t
+            sigma_ = sigma[t]
+            sum_flow = sum_flow + sigma[t]
+            while x != s:
+                u = pre[x]
+                if dir[x] > 0:
+                    F[u][x] = F[u][x] + sigma_
+                else:
+                    F[x][u] = F[x][u] - sigma_
+                x = u
+        else:
+            break             
+    S = []
+    T = []
+    for node in nodes:
+        if dir[node] == 0:
+            T.append(node)
+        else:
+            S.append(node)
+    return S, T, sum_flow
+
 '''
 testcase
 
@@ -88,4 +148,16 @@ testcase
 4 6 7.62
 5 6 5
 
+'''
+'''
+1 2 9
+1 3 4
+1 4 8
+2 3 4
+2 6 3
+3 7 7
+4 5 5
+5 3 3
+5 7 2
+6 7 6
 '''
