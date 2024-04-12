@@ -1,7 +1,7 @@
 def bfs(graph, start_node):
+    visited = set()
     components = []
     def BFS(graph, start_node):
-        visited = set()
         queue = [start_node]
         order = []
         
@@ -27,9 +27,9 @@ def bfs(graph, start_node):
     return components
 
 def dfs(graph, start_node):
+    visited = set()
     components = []
     def DFS(graph, start_node):
-        visited = set()
         stack = [start_node]
         order = []
         
@@ -49,9 +49,9 @@ def dfs(graph, start_node):
     # duyệt toàn bộ đồ thị
     nodes = set(graph.nodes)-DFS(graph, start_node)
     while nodes:
-        lst = list(nodes)
+        lst = [int(node) for node in nodes]
         lst.sort()
-        nodes = nodes-DFS(graph, lst[0])
+        nodes = nodes-DFS(graph, str(lst[0]))
     return components
 
 def dfs_recursion(graph, start_node):
@@ -59,6 +59,7 @@ def dfs_recursion(graph, start_node):
     components = []
     def DFS(graph, start_node):
         order = []
+        
         def recursion(node):
             visited.add(node)
             order.append(node)
@@ -73,9 +74,9 @@ def dfs_recursion(graph, start_node):
      # duyệt toàn bộ đồ thị
     nodes = set(graph.nodes)-DFS(graph, start_node)
     while nodes:
-        lst = list(nodes)
+        lst = [int(node) for node in nodes]
         lst.sort()
-        nodes = nodes-DFS(graph, lst[0])
+        nodes = nodes-DFS(graph, str(lst[0]))
     return components
 
 '''

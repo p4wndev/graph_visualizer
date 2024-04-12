@@ -1,37 +1,38 @@
-# KIỂM TRA BỘ PHẬN LIÊN THÔNG
 def Tarjan(graph):
+    scc = []
     k = 1
     min_num = {}
     num = {}
     stack = []
-    strong_components = []
 
-    def SCC(graph, start_node, k):
-        num.update({start_node: k})
-        min_num.update({start_node: k})
-        k = k+1
-        stack.append(start_node)
+    def SCC(graph, u, k):
+        num[u] = k
+        min_num[u] = k
+        k = k + 1
+        stack.append(u)
 
-        for v in graph.neighbors(start_node):
-            if v not in num:
-                SCC(graph, v, k)
-                min_num.update(
-                    {start_node: min(min_num.get(start_node), min_num.get(v))})
-            elif v in stack:
-                min_num.update(
-                    {start_node: min(min_num.get(start_node), num.get(v))})
+        neighbors = [int(node) for node in graph.neighbors(u)]
+        neighbors.sort(reverse=False)
+        for v in neighbors:
+            if str(v) not in num:
+                SCC(graph, str(v), k)
+                min_num[u] = min(min_num[u], min_num[str(v)])
+            elif str(v) in stack:
+                min_num[u] = min(min_num[u], min_num[str(v)])
 
-        if num.get(start_node) == min_num.get(start_node):
+        if num[u] == min_num[u]:
             component = []
             while True:
                 w = stack.pop()
                 component.append(w)
-                if w == start_node:
+                if w == u:
                     break
-            if len(component) != 0:
-                strong_components.append(component)
+            scc.append(component)
+    
+    nodes = [int(node) for node in graph.nodes]
+    nodes.sort(reverse=False)
+    for node in nodes:
+        if str(node) not in num:
+            SCC(graph, str(node), k)
 
-    for node in list(graph.nodes):
-        if node not in num:
-            SCC(graph, node, k)
-    return strong_components
+    return scc
