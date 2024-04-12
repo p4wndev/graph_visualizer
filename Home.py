@@ -8,7 +8,7 @@ from algo_lib.search import dfs, bfs, dfs_recursion
 from algo_lib.scc import Tarjan
 from algo_lib.shortest_path import Moore_Dijkstra, Bellman_Ford, Floyd_Warshall, negative_weight_cycle
 from algo_lib.topo import topo_sort, rank
-from algo_lib.mst import Kruskal, Prim, Ford_Fulkerson
+from algo_lib.mst import Kruskal, Prim
 
 
 st.set_page_config(layout="centered",
@@ -160,9 +160,9 @@ def main():
     st.sidebar.subheader("Tìm đường đi ngắn nhất:")
     st.sidebar.caption("Tìm đường đi ngắn nhất sử dụng thuật toán :violet[Moore-Dijkstra], :violet[Bellman-Ford] hoặc :violet[Floyd-Warshall]")
     shortest_paths_algo = st.sidebar.selectbox('Chọn thuật toán:', ['Moore-Dijkstra', 'Bellman-Ford', 'Floyd-Warshall'])
-    ways_to_search = st.sidebar.selectbox('Tìm đường đi ngắn nhất', ['từ 1 đỉnh đến các đỉnh còn lại', 'giữa 2 đỉnh'])
+    ways_to_search = st.sidebar.selectbox('Tìm đường đi ngắn nhất', ['Từ 1 đỉnh đến các đỉnh còn lại', 'Giữa 2 đỉnh'])
     start_node = st.sidebar.selectbox('Chọn đỉnh đầu:', options = nodes)
-    if ways_to_search == 'giữa 2 đỉnh':
+    if ways_to_search == 'Giữa 2 đỉnh':
         finish_node = st.sidebar.selectbox('Chọn đỉnh cuối:', options = nodes)
     if st.sidebar.button("Tìm"):
         # -------------- #
@@ -180,17 +180,17 @@ def main():
         elif shortest_paths_algo == 'Moore-Dijkstra':
             if not all(float(graph.get_edge_data(edge[0],edge[1])['label']) >= 0 for edge in graph.edges):
                 st.toast("Moore-Dijkstra chỉ áp dụng cho đồ thị có trọng số không âm!", icon='⚠️')
-            elif ways_to_search == 'giữa 2 đỉnh':
+            elif ways_to_search == 'Giữa 2 đỉnh':
                 _2node_(Moore_Dijkstra(graph, start_node, finish_node), finish_node)
             else:
                 st.subheader(f"Đường đi ngắn nhất từ đỉnh :blue[{start_node}] đến tất cả các đỉnh là:")
-                for finish_node in nodes:
-                    _2node_(Moore_Dijkstra(graph, start_node, finish_node), finish_node)
+                for node in nodes:
+                    _2node_(Moore_Dijkstra(graph, start_node, node), finish_node=node)
         # Bellman-Ford
         elif shortest_paths_algo == 'Bellman-Ford':
             if negative_weight_cycle(graph, start_node, 'Bellman_Ford'):
                 st.toast("Đồ thị chứa chu trình trọng số âm!", icon='⚠️')
-            elif ways_to_search == 'giữa 2 đỉnh':
+            elif ways_to_search == 'Giữa 2 đỉnh':
                 _2node_(Bellman_Ford(graph, start_node, finish_node), finish_node)
             else:
                 st.subheader(f"Đường đi ngắn nhất từ đỉnh :blue[{start_node}] đến tất cả các đỉnh là:")
@@ -200,7 +200,7 @@ def main():
         elif shortest_paths_algo == 'Floyd-Warshall':
             if negative_weight_cycle(graph, start_node, 'Floyd_Warshall'):
                 st.toast("Đồ thị chứa chu trình trọng số âm!", icon='⚠️')
-            elif ways_to_search == 'giữa 2 đỉnh':
+            elif ways_to_search == 'Giữa 2 đỉnh':
                 _2node_(Floyd_Warshall(graph, start_node, finish_node), finish_node)
             else:
                 st.subheader(f"Đường đi ngắn nhất từ đỉnh :blue[{start_node}] đến tất cả các đỉnh là:")
@@ -212,11 +212,16 @@ def main():
     st.sidebar.caption("Sắp xếp các đỉnh của đồ thị :red[có hướng không có chu trình (DAG)] theo thứ tự topo")
     if st.sidebar.button("Sắp xếp"):
         if directed:
-            topo = topo_sort(graph)
-            if topo[1]:#Kiểm tra đồ thị có chứa chu trình hay không
-                st.subheader('Thứ tự topo: '+', '.join(topo[0]))
-            else:
-                st.toast('Đồ thị chứa chu trình, không thể tính toán thứ tự topo.', icon='⚠️')
+            try:
+                topo_order = []
+                topo_sort(graph, topo_order, edges)
+            except:
+                st.toast(
+                    'Đồ thị không phải là DAG, không thể tính toán thứ tự topo.', icon='⚠️')
+                return
+            # st.table(pd.DataFrame(topo_order, columns=['Đỉnh']).T)
+            
+            st.subheader('Thứ tự topo: '+', '.join(topo_order))
         else:
             st.toast('Đồ thị vô hướng không thể tính toán thứ tự topo!', icon='⚠️')
     # Xếp hạng đồ thị 
@@ -263,21 +268,12 @@ def main():
                     st.toast('Đồ thị không phải mạng, không thể tìm luồng cực đại!', icon='⚠️')
             else:
                 st.toast('Đồ thị chứa chu trình, không thể tìm luồng cực đại!', icon='⚠️')
-        else:
-            st.toast('Đồ thị vô hướng không thể tìm luồng cực đại!', icon='⚠️')
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
+          else:
+              st.toast('Đồ thị có hướng không thể tìm cây khung nhỏ nhất!', icon='⚠️')
+          elif len(bfs(graph, nodes)[0]) != len(nodes):
+              st.toast("Đồ thị không liên thông không thể tìm cây khung nhỏ nhất!", icon='⚠️')
+          elif not all(len(edge) == 3 for edge in edges) :
+              st.toast("Vui lòng nhập trọng số cho tất cả cung!", icon='⚠️')
 
 if __name__ == "__main__":
     main()
