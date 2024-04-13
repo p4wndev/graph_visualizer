@@ -11,7 +11,7 @@ from algo_lib.topo import topo_sort, rank
 from algo_lib.mst import Kruskal, Prim, Ford_Fulkerson
 
 st.set_page_config(layout="centered",
-                   page_title="GraphVify",
+                   page_title="GraphViz",
                    page_icon="🌐",
                    initial_sidebar_state="expanded")
 
@@ -57,7 +57,7 @@ def drawGraph(graph, directed):
 # main
 def main():
     # Giao diện người dùng
-    st.title("✨Graph:red[Vify]")
+    st.title("✨Graph:red[Viz]")
     with st.popover("Hướng dẫn 📎"):
         st.markdown("**Giới thiệu**\n\nỨng dụng web này cho phép bạn mô phỏng các thao tác cơ bản trên đồ thị, bao gồm:\n *   Nhập đồ thị\n*   Duyệt đồ thị\n*   Kiểm tra tính liên thông\n* Tìm đường đi ngắn nhất\n* Xếp hạng đồ thị\n* Tìm cây khung nhỏ nhất\n* Luồng cực đại\n\n **Hướng dẫn sử dụng**\n\n")
         with st.expander("Nhập đồ thị"):
