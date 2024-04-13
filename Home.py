@@ -245,27 +245,35 @@ def main():
     # '''CÂY KHUNG'''
     
     #------------------------------------------------
-    print(graph.get_edge_data('1','2'))
+    
     st.sidebar.divider()
     st.sidebar.subheader("Luồng cực đại:")
     st.sidebar.caption("Tìm luồng cực đại trong mạng bằng thuật toán đánh dấu :violet[Ford-Fulkerson]")
     if st.sidebar.button(":grey[Tìm]"):
         if directed:
-            st.toast('Đồ thị có hướng không thể tìm cây khung nhỏ nhất!', icon='⚠️')
-        elif len(bfs(graph, nodes)[0]) != len(nodes):
-            st.toast("Đồ thị không liên thông không thể tìm cây khung nhỏ nhất!", icon='⚠️')
-        elif not all(len(edge) == 3 for edge in edges) :
-            st.toast("Vui lòng nhập trọng số cho tất cả cung!", icon='⚠️')
-        else:
-            if mst_algo == "Kruskal":
-                mst = Kruskal(graph)
-            elif mst_algo == "Prim":
-                mst = Prim(graph, start_node_Prim)
-            
-            mst_graph = createGraph(mst[0])
-            
-            st.subheader("Cây khung nhỏ nhất")
-            drawGraph(mst_graph, directed)
-            st.subheader(f"Trọng lượng: {mst[1]}")
+            if topo_sort(graph)[1]:#Kiểm tra đồ thị có chứa chu trình hay không
+                rank_topo = rank(graph)
+                is_network = len(rank_topo[0])==1 and len(rank_topo[-1])==1
+                if is_network:# Kiểm tra đồ thị có phải mạng hay không
+                    max_flow = Ford_Fulkerson(graph, rank_topo[0][0], rank_topo[-1][0])
+                    max_flow_graph = graph.copy()
+                    S, T = max_flow[0], max_flow[1]
+                    for s in S:
+                        for t in T:
+                            if graph.has_edge(s, t):
+                                max_flow_graph.add_edge(s, t, color='red')
+                    st.subheader(f":blue[Luồng cực đại trong mạng] = :red[{max_flow[-1]}]")
+                    drawGraph(max_flow_graph, directed)
+                else:
+                    st.toast('Đồ thị không phải mạng, không thể tìm luồng cực đại!', icon='⚠️')
+            else:
+                st.toast('Đồ thị chứa chu trình, không thể tìm luồng cực đại!', icon='⚠️')
+          else:
+              st.toast('Đồ thị có hướng không thể tìm cây khung nhỏ nhất!', icon='⚠️')
+          elif len(bfs(graph, nodes)[0]) != len(nodes):
+              st.toast("Đồ thị không liên thông không thể tìm cây khung nhỏ nhất!", icon='⚠️')
+          elif not all(len(edge) == 3 for edge in edges) :
+              st.toast("Vui lòng nhập trọng số cho tất cả cung!", icon='⚠️')
+
 if __name__ == "__main__":
     main()
